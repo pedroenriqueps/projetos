@@ -36,8 +36,10 @@ async function createUser(req, res) {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const encryptUsername = encrypt(username.toString(), secretKey);
-    const encryptEmail = encrypt(email.toString(), secretKey);
+    const encryptUsername = encrypt(username, secretKey);
+    const encryptEmail = encrypt(email, secretKey);
+
+    console.log("Email criptografado para registro:", encryptEmail);
 
     const [result] = await connection.execute(
       "INSERT INTO users (username, email, hashedPassword) VALUES (?, ?, ?)",
