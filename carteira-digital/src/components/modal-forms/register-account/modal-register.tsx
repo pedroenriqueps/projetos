@@ -5,7 +5,12 @@ import { Labels } from "@/hooks/labels/labels";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-
+import { Createuser } from "@/api/services/post-connect";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/render-forms/render-forms";
 type FormProps = {
   username: string;
   email: string;
@@ -13,7 +18,6 @@ type FormProps = {
   confirmPassword: string;
 };
 
-// Crie o schema de validação com Yup
 const schema = yup.object().shape({
   username: yup.string().required("O nome de usuário é obrigatório"),
   email: yup.string().email("Email inválido").required("O email é obrigatório"),
@@ -28,6 +32,8 @@ const schema = yup.object().shape({
 });
 
 export default function ModalRegister() {
+  const router = useRouter();
+  const { setLoggedIn } = useAuth();
   const {
     register,
     handleSubmit,
@@ -36,9 +42,33 @@ export default function ModalRegister() {
     resolver: yupResolver(schema),
   });
 
-  const handleChange = (data: FormProps) => {
-    console.log(data);
+  const handleChange = async (data: FormProps) => {
+    try {
+      await Createuser(data);
+      toast.success("Usuário registrado com sucesso!");
+      //window.location.reload();
+      setLoggedIn(false);
+      router.push("http://localhost:3000");
+    } catch (error: any) {
+      if (error.response && error.response.status === 400) {
+        toast.error("Este usuário já está cadastrado.");
+      } else {
+        toast.error(`Erro: ${error.message || "Erro desconhecido"}`);
+      }
+    }
   };
+
+  useEffect(() => {
+    if (errors.username) {
+      toast.error(errors.username.message);
+    } else if (errors.email) {
+      toast.error(errors.email.message);
+    } else if (errors.password) {
+      toast.error(errors.password.message);
+    } else if (errors.confirmPassword) {
+      toast.error(errors.confirmPassword.message);
+    }
+  }, [errors]);
 
   return (
     <>
@@ -61,9 +91,6 @@ export default function ModalRegister() {
               className="bg-slate-800 text-slate-100 border border-slate-700 p-2 rounded"
               placeholder="Escolha um nome"
             />
-            {errors.username && (
-              <span className="text-red-500">{errors.username.message}</span>
-            )}
           </div>
           <div className="flex flex-col mb-2">
             <Labels htmlFor="email">Email</Labels>
@@ -74,9 +101,6 @@ export default function ModalRegister() {
               className="bg-slate-800 text-slate-100 border border-slate-700 p-2 rounded"
               placeholder="Escolha seu melhor email"
             />
-            {errors.email && (
-              <span className="text-red-500">{errors.email.message}</span>
-            )}
           </div>
           <div className="flex flex-col mb-2">
             <Labels htmlFor="password">Senha</Labels>
@@ -87,9 +111,6 @@ export default function ModalRegister() {
               className="bg-slate-800 text-slate-100 border border-slate-700 p-2 rounded"
               placeholder="Escolha uma senha"
             />
-            {errors.password && (
-              <span className="text-red-500">{errors.password.message}</span>
-            )}
           </div>
           <div className="flex flex-col mb-2">
             <Labels htmlFor="confirmPassword">Repita a senha</Labels>
@@ -100,16 +121,11 @@ export default function ModalRegister() {
               className="bg-slate-800 text-slate-100 border border-slate-700 p-2 rounded"
               placeholder="Repita a senha escolhida"
             />
-            {errors.confirmPassword && (
-              <span className="text-red-500">
-                {errors.confirmPassword.message}
-              </span>
-            )}
           </div>
           <div className="mb-4 text-slate-400">
             <p>
               Já tem conta?{" "}
-              <Link href="forms/login" className="text-green-500 underline">
+              <Link href="/auth/login" className="text-green-500 underline">
                 Fazer login
               </Link>
             </p>
