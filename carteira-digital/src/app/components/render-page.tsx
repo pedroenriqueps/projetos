@@ -1,16 +1,18 @@
 "use client";
 import Graphics from "@/components/graphics/graphics";
 import Header from "@/components/header/header";
-import ModalRegister from "@/components/modal-forms/register-account/modal-register";
+import ModalLogin from "@/components/modal-forms/login-account/modal-login";
 import RenderForms from "@/utils/render-cards/render-cards";
-import { useState } from "react";
-
+import { useAuth } from "@/context/render-forms/render-forms";
+import { ToastContainer } from "react-toastify";
 export default function RenderPage() {
-  const [renderForm, setRenderForm] = useState<boolean>(true);
+  const { isLoggedIn } = useAuth();
+
   return (
     <>
-      {renderForm === true ? (
-        <ModalRegister />
+      <ToastContainer />
+      {isLoggedIn === true ? (
+        <ModalLogin />
       ) : (
         <div>
           <section>
